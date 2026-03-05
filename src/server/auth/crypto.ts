@@ -5,8 +5,10 @@ let privateKey: CryptoKey;
 let publicKey: CryptoKey;
 
 export async function initializeKeys(env: Env) {
+  if (privateKey && publicKey) return;
+
   const pemData = env.RSA_PRIVATE_KEY;
-  privateKey = await importPKCS8(pemData, "RS256");
+  privateKey = await importPKCS8(pemData, "RS256", { extractable: true });
 
   const jwk = await exportJWK(privateKey);
   delete jwk.d;

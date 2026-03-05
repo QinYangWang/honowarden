@@ -68,9 +68,14 @@
 		"check": "tsc && vite build && wrangler deploy --dry-run",
 		"deploy": "wrangler deploy",
 		"dev": "vite",
+		"cf-dev": "wrangler dev",
+		"db:migrate:local": "wrangler d1 migrations apply honowarden-db --local",
+		"db:migrate:remote": "wrangler d1 migrations apply honowarden-db --remote",
 		"generate-keys": "node scripts/generate-keys.mjs",
 		"lint": "eslint .",
-		"preview": "npm run build && vite preview"
+		"postinstall": "node scripts/setup-wrangler.mjs",
+		"preview": "npm run build && vite preview",
+		"setup": "node scripts/setup-wrangler.mjs && npm run generate-keys"
 	},
 	"type": "module"
 }

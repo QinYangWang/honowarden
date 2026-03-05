@@ -42,7 +42,8 @@
 
 ## Skills
 
-- **fix-build-errors** (`/skills/fix-build-errors/SKILL.md`): 当 `npm run build` 或 `tsc` 产生编译错误时使用。提供系统化的诊断-分类-批量修复流程，包含本项目常见的类型错误模式及其修复方案。
+- **fix-build-errors** (`.cursor/skills/fix-build-errors/SKILL.md`): 当 `npm run build` 或 `tsc` 产生编译错误时使用。提供系统化的诊断-分类-批量修复流程，包含本项目常见的类型错误模式及其修复方案。
+- **local-dev-setup** (`.cursor/skills/local-dev-setup/SKILL.md`): 启动本地开发环境、运行 E2E 测试或排查 D1/密钥相关错误时使用。包含首次初始化流程和常见问题解决方案。
 
 ## References
 

@@ -14,7 +14,7 @@ Vaultwarden 使用三层配置优先级：环境变量 < config.json < Admin 面
 
 ```mermaid
 graph TD
-    Env[Workers Env / Secrets<br/>wrangler.toml / Dashboard] -->|defaults| Resolver
+    Env[Workers Env / Secrets<br/>wrangler.template.json / Dashboard] -->|defaults| Resolver
     KV[KV CONFIG Namespace<br/>Admin 面板写入] -->|overrides| Resolver
     Resolver[Config Resolver] --> App[Application Code]
 
@@ -47,7 +47,7 @@ npx wrangler secret put ADMIN_TOKEN
 npx wrangler secret put RESEND_API_KEY
 ```
 
-### 静态配置 (wrangler.toml / env)
+### 静态配置 (wrangler.template.json / env)
 
 不需要运行时修改的配置：
 
@@ -335,13 +335,17 @@ export function validateConfig(key: string, value: unknown): boolean {
 
 ```env
 # .dev.vars - Cloudflare local dev secrets
-RSA_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
-ADMIN_TOKEN="$argon2id$v=19$m=65540,t=3,p=4$..."
+# 运行 npm run generate-keys 自动生成 RSA_PRIVATE_KEY 和 ADMIN_TOKEN
+RSA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+ADMIN_TOKEN="<random base64url token>"
 RESEND_API_KEY="re_..."
 DOMAIN="http://localhost:8787"
 ```
 
-### wrangler.toml (开发环境变量)
+> **注意：** RSA 密钥必须是 PKCS#8 格式（`BEGIN PRIVATE KEY`），因为 `jose` 库的 `importPKCS8()` 要求此格式。
+> 使用 `npm run generate-keys` 可自动生成正确格式的密钥。
+
+### wrangler.template.json (开发环境变量)
 
 ```toml
 [vars]

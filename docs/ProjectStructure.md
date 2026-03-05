@@ -13,7 +13,8 @@ honowarden/
 ├── drizzle/              # Drizzle 迁移文件 (auto-generated)
 ├── .env                  # 环境变量模板
 ├── .dev.vars             # 本地开发 Cloudflare 变量
-├── wrangler.toml         # Cloudflare Workers 配置
+├── wrangler.template.json # Cloudflare Workers 配置模板 (committed)
+├── wrangler.json          # 从模板生成的配置 (gitignored, `npm run postinstall` 自动生成)
 ├── drizzle.config.ts     # Drizzle Kit 配置
 ├── tsconfig.json         # TypeScript 配置
 ├── vite.config.ts        # Vite 构建配置 (前端)
@@ -322,10 +323,8 @@ util/
 └── import-vaultwarden.ts        # 从 Vaultwarden SQLite 导入数据
 
 scripts/
-├── dev.sh                       # 启动本地开发环境
-├── generate-keys.ts             # 生成 RSA 密钥对
-├── create-admin-token.ts        # 生成 Admin Token (Argon2)
-└── test-email.ts                # 测试 Resend 邮件发送
+├── generate-keys.mjs            # 生成 RSA 密钥对 (PKCS#8) + Admin Token → .dev.vars
+└── e2e-test.mjs                 # E2E API 测试脚本 (Register → Login → Sync → CRUD)
 ```
 
 ## 模块依赖关系

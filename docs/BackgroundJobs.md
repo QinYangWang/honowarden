@@ -25,7 +25,7 @@ Vaultwarden 使用 `job_scheduler_ng` 在独立线程中运行 cron 任务。Hon
 
 > Vaultwarden 使用 6 位 cron（含秒），Cloudflare Cron Triggers 使用标准 5 位 cron（不含秒）。
 
-### wrangler.toml 配置
+### wrangler.template.json 配置
 
 ```toml
 [triggers]
@@ -446,7 +446,7 @@ console.log(JSON.stringify({
 ### Dead Letter Queue
 
 ```toml
-# wrangler.toml
+# wrangler.template.json
 [[queues.consumers]]
 queue = "honowarden-email"
 max_retries = 3

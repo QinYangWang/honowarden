@@ -193,6 +193,7 @@ dist
 
 ### Wrangler ###
 .wrangler/
+wrangler.json
 .env*
 !.env.example
 .dev.vars*

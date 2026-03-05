@@ -277,7 +277,7 @@ export { AnonymousNotificationHub } from "./durable-objects/anonymous-hub";
 
 Env 类型由两部分组成：
 
-1. **自动生成部分** — 运行 `npm run cf-typegen`（即 `wrangler types`）从 `wrangler.json` 自动生成到 `worker-configuration.d.ts`，包含所有 D1/R2/KV/DO/Queue/vars 绑定及 Workers 运行时类型。
+1. **自动生成部分** — 运行 `npm run cf-typegen`（即 `wrangler types`）从 `wrangler.template.json`（或生成的 `wrangler.json`）自动生成到 `worker-configuration.d.ts`，包含所有 D1/R2/KV/DO/Queue/vars 绑定及 Workers 运行时类型。
 2. **手动声明部分** — `src/server/env.ts` 通过 `declare global` 扩展 `Cloudflare.Env`，补充通过 `wrangler secret` / `.dev.vars` 设置的 Secrets。
 
 ```typescript
@@ -322,7 +322,7 @@ type Env = Cloudflare.Env;
 export type { Env };
 ```
 
-> **重要**: 每次修改 `wrangler.json` 中的绑定后，必须重新运行 `npm run cf-typegen` 以更新类型。
+> **重要**: 每次修改 `wrangler.template.json` 中的绑定后，必须重新运行 `node scripts/setup-wrangler.mjs && npm run cf-typegen` 以更新生成的配置和类型。
 
 ## 与 Vaultwarden 的层级映射
 

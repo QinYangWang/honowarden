@@ -8,7 +8,7 @@
 - 已验证的域名 (用于 Resend 邮件发送)
 - [wrangler](https://developers.cloudflare.com/workers/wrangler/) CLI
 
-## wrangler.toml 配置
+## wrangler.template.json 配置
 
 ```toml
 name = "honowarden"
@@ -143,91 +143,77 @@ cd honowarden
 npm install
 ```
 
-### 2. 创建 Cloudflare 资源
+### 2. 创建 Cloudflare 资源（自动）
+
+`scripts/setup-wrangler.mjs` 在检测到 `CLOUDFLARE_API_TOKEN` 时会自动按名称查找或创建所有资源：
 
 ```bash
-# 登录 Cloudflare
-npx wrangler login
+# 设置 API Token（获取方式见下方 Secrets 参考）
+export CLOUDFLARE_API_TOKEN="your-token"
+export CLOUDFLARE_ACCOUNT_ID="your-account-id"  # 可选，单账号自动检测
 
-# 创建 D1 数据库
-npx wrangler d1 create honowarden-db
-# 记录输出的 database_id，填入 wrangler.toml
-
-# 创建 R2 Buckets
-npx wrangler r2 bucket create honowarden-attachments
-npx wrangler r2 bucket create honowarden-sends
-npx wrangler r2 bucket create honowarden-icons
-
-# 创建 KV Namespaces
-npx wrangler kv namespace create CONFIG
-npx wrangler kv namespace create RATE_LIMIT
-# 记录输出的 namespace id，填入 wrangler.toml
-
-# 创建 Queues
-npx wrangler queues create honowarden-email
-npx wrangler queues create honowarden-push
-npx wrangler queues create honowarden-events
-npx wrangler queues create honowarden-dlq
+# 自动创建 D1/KV/R2/Queue 并生成 wrangler.json
+node scripts/setup-wrangler.mjs
 ```
 
-### 3. 生成 RSA 密钥
+脚本会自动处理以下资源：
+- **D1**: `honowarden-db`
+- **KV**: `honowarden-CONFIG`, `honowarden-RATE_LIMIT`
+- **R2**: `honowarden-attachments`, `honowarden-sends`, `honowarden-icons`
+- **Queues**: `honowarden-email`, `honowarden-push`, `honowarden-events`, `honowarden-dlq`
+
+如果 CI/CD 部署（推荐），只需配置 GitHub Secrets，推送代码后自动执行。
+
+### 3. 生成开发密钥
 
 ```bash
-# 生成 2048-bit RSA 密钥
-npx ts-node scripts/generate-keys.ts
-# 或手动
-openssl genrsa -out rsa_key.pem 2048
+npm run generate-keys     # → .dev.vars (RSA PKCS#8 私钥 + Admin Token)
 ```
 
-### 4. 配置 Secrets
+### 4. 配置 Worker 运行时 Secrets
 
 ```bash
-# RSA 私钥
-npx wrangler secret put RSA_PRIVATE_KEY < rsa_key.pem
-
-# Admin Token (推荐使用 Argon2 哈希)
-npx ts-node scripts/create-admin-token.ts
+# 必需（从 .dev.vars 复制值，或手动输入）
+npx wrangler secret put RSA_PRIVATE_KEY
 npx wrangler secret put ADMIN_TOKEN
-
-# Resend API Key
 npx wrangler secret put RESEND_API_KEY
 
-# 可选: Push Relay
-npx wrangler secret put PUSH_INSTALLATION_ID
-npx wrangler secret put PUSH_INSTALLATION_KEY
-
-# 可选: Duo
+# 可选: Duo 2FA
 npx wrangler secret put DUO_IKEY
 npx wrangler secret put DUO_SKEY
+npx wrangler secret put DUO_HOST
 
 # 可选: YubiKey
 npx wrangler secret put YUBICO_CLIENT_ID
 npx wrangler secret put YUBICO_SECRET_KEY
+
+# 可选: Bitwarden Push Relay
+npx wrangler secret put PUSH_INSTALLATION_ID
+npx wrangler secret put PUSH_INSTALLATION_KEY
 ```
 
 ### 5. 数据库迁移
 
 ```bash
-# 生成迁移文件
-npx drizzle-kit generate --name init
+# 生成迁移文件（仅首次或 schema 变更后需要）
+npx drizzle-kit generate
 
 # 应用到本地 D1
-npx wrangler d1 migrations apply honowarden-db --local
+npm run db:migrate:local
 
 # 应用到远程 D1
-npx wrangler d1 migrations apply honowarden-db --remote
+npm run db:migrate:remote
 ```
 
 ### 6. 构建与部署
 
 ```bash
-# 构建
+# 手动部署
 npm run build
-
-# 部署到 Cloudflare
 npm run deploy
-# 或
-npx wrangler deploy
+
+# 或推送到 main 分支，CI 自动部署
+git push origin main
 ```
 
 ### 7. 配置域名
@@ -251,79 +237,96 @@ npx wrangler deploy
 ### 配置开发环境
 
 ```bash
-# 复制开发环境变量
-cp .dev.vars.example .dev.vars
-# 编辑 .dev.vars，填入开发环境 Secret
+# 安装依赖（postinstall 自动从模板生成 wrangler.json）
+npm install
 
-# 创建本地 D1 并迁移
-npx wrangler d1 migrations apply honowarden-db --local
+# 生成开发密钥
+npm run generate-keys
+
+# 生成数据库迁移 SQL（仅首次或 schema 变更后）
+npx drizzle-kit generate
+
+# 应用迁移到本地 D1
+npm run db:migrate:local
 
 # 启动开发服务器
 npm run dev
-# 或
-npx wrangler dev
 ```
 
 ### .dev.vars.example
 
 ```env
-RSA_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEA...
------END RSA PRIVATE KEY-----"
-ADMIN_TOKEN="admin_password_for_dev"
-RESEND_API_KEY="re_test_..."
+# 运行 npm run generate-keys 自动生成
+RSA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+YOUR_PKCS8_RSA_PRIVATE_KEY_HERE
+-----END PRIVATE KEY-----"
+ADMIN_TOKEN="your_admin_token_here"
+RESEND_API_KEY="re_test_your_key_here"
 DOMAIN="http://localhost:8787"
 ```
 
 ### 开发模式特性
 
-- `wrangler dev` 自动启动本地 D1、R2、KV、DO 模拟
-- 支持热重载
-- 本地 WebSocket 连接
-- `--remote` 标志可连接远程资源
-
-```bash
-# 连接远程 D1 进行开发
-npx wrangler dev --remote
-```
+- `npm run dev` 使用 `@cloudflare/vite-plugin` 启动，自动模拟 D1、R2、KV、DO
+- 支持 Vite HMR 热重载
+- 本地状态持久化在 `.wrangler/state/v3/`
+- `wrangler.json` 从 `wrangler.template.json` 自动生成（`npm install` 时）
 
 ## package.json Scripts
 
 ```json
 {
   "scripts": {
-    "dev": "wrangler dev",
-    "dev:remote": "wrangler dev --remote",
-    "build": "tsc && vite build",
+    "build": "tsc -b && vite build",
+    "cf-typegen": "wrangler types",
     "deploy": "wrangler deploy",
-    "deploy:staging": "wrangler deploy --env staging",
-    "deploy:production": "wrangler deploy --env production",
-    "db:generate": "drizzle-kit generate",
+    "dev": "vite",
     "db:migrate:local": "wrangler d1 migrations apply honowarden-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply honowarden-db --remote",
-    "db:studio": "drizzle-kit studio",
-    "test": "vitest",
-    "test:e2e": "vitest run --config vitest.e2e.config.ts",
-    "lint": "tsc --noEmit && eslint src/",
-    "generate-keys": "tsx scripts/generate-keys.ts",
-    "create-admin-token": "tsx scripts/create-admin-token.ts"
+    "generate-keys": "node scripts/generate-keys.mjs",
+    "lint": "eslint .",
+    "postinstall": "node scripts/setup-wrangler.mjs",
+    "setup": "node scripts/setup-wrangler.mjs && npm run generate-keys"
   }
 }
 ```
 
 ## CI/CD (GitHub Actions)
 
+### GitHub Secrets 配置
+
+在仓库 Settings → Secrets and variables → Actions 中添加：
+
+| Secret | 必需 | 说明 | 获取方式 |
+|--------|------|------|----------|
+| `CLOUDFLARE_API_TOKEN` | **是** | Cloudflare API 令牌 | Dashboard → My Profile → API Tokens → Create Custom Token |
+| `CLOUDFLARE_ACCOUNT_ID` | 推荐 | 账号 ID（单账号可省略） | Dashboard → Account Home → 右侧边栏 Account ID |
+| `DEPLOY_DOMAIN` | **是** | 生产域名 | 如 `https://vault.example.com` |
+
+**API Token 所需权限：**
+
+| 权限范围 | 资源 | 权限 |
+|----------|------|------|
+| Account | Workers Scripts | Edit |
+| Account | Workers KV Storage | Edit |
+| Account | Workers R2 Storage | Edit |
+| Account | D1 | Edit |
+| Account | Queues | Edit |
+| Zone | DNS | Edit |
+
+> 脚本会自动使用此 Token 查找或创建 D1、KV、R2、Queue 资源，无需手动创建或记录资源 ID。
+
 ### 部署流水线
 
 ```yaml
-# .github/workflows/deploy.yml
-name: Deploy HonoWarden
+# .github/workflows/ci.yml
+name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs:
   test:
@@ -332,71 +335,58 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
-
+          node-version: 20
+          cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm test
+      - name: Type Check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Unit Tests
+        run: npx vitest run
 
-  deploy-staging:
+  deploy:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
-
+          node-version: 20
+          cache: npm
       - run: npm ci
-      - run: npm run build
+
+      - name: Provision resources & generate wrangler.json
+        run: node scripts/setup-wrangler.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
+
+      - name: Build
+        run: npm run build
 
       - name: Apply D1 Migrations
-        run: npx wrangler d1 migrations apply honowarden-db-staging --remote
+        run: npm run db:migrate:remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      - name: Deploy to Staging
-        run: npx wrangler deploy --env staging
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-  deploy-production:
-    needs: deploy-staging
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://vault.example.com
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
         with:
-          node-version: "20"
-          cache: "npm"
-
-      - run: npm ci
-      - run: npm run build
-
-      - name: Apply D1 Migrations
-        run: npx wrangler d1 migrations apply honowarden-db --remote --env production
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Deploy to Production
-        run: npx wrangler deploy --env production
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
 
-### GitHub Secrets
+### 流水线说明
 
-| Secret | 描述 |
-|--------|------|
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API Token (Workers 部署权限) |
+1. **test** — 类型检查 + lint + 单元测试（PR 和 push 均触发）
+2. **deploy**（仅 main/master push）：
+   - `setup-wrangler.mjs` 通过 Cloudflare API 查找/创建所有资源，生成带真实 ID 的 `wrangler.json`
+   - `npm run build` 构建前端和 Worker
+   - `db:migrate:remote` 应用数据库迁移
+   - `wrangler-action` 部署到 Cloudflare
 
 ## 监控与可观测性
 

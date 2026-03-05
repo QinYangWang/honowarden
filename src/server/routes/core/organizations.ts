@@ -5,10 +5,7 @@ import { createDb } from "../../db/client";
 import {
   organizations,
   usersOrganizations,
-  organizationApiKey,
   collections,
-  usersCollections,
-  ciphers,
   orgPolicies,
 } from "../../db/schema";
 import { MembershipType, MembershipStatus } from "../../db/schema/enums";
@@ -239,7 +236,6 @@ organizationsRoute.post("/:orgId/users/invite", orgMemberGuard(), orgAdminGuard(
   const orgId = c.req.param("orgId");
   const body = await c.req.json();
   const db = createDb(c.env.DB);
-  const uuid = generateUuid();
 
   for (const email of body.emails || [body.email]) {
     await db.insert(usersOrganizations).values({

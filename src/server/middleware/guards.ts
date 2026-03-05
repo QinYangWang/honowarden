@@ -12,7 +12,7 @@ export const orgMemberGuard = (orgIdParam = "orgId") =>
     Bindings: Env;
     Variables: { auth: AuthContext; membership: typeof usersOrganizations.$inferSelect };
   }>(async (c, next) => {
-    const orgId = c.req.param(orgIdParam);
+    const orgId = c.req.param(orgIdParam)!;
     const { user } = c.get("auth");
     const db = createDb(c.env.DB);
 

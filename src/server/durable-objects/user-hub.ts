@@ -40,7 +40,6 @@ export class UserNotificationHub extends DurableObject {
   async webSocketMessage(ws: WebSocket, message: ArrayBuffer | string): Promise<void> {
     // Handle ping
     if (message instanceof ArrayBuffer && message.byteLength > 0) {
-      const view = new Uint8Array(message);
       // Respond to client pings
       const pingResponse = encode([6]);
       ws.send(this.lengthPrefix(new Uint8Array(pingResponse)));

@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { useAuthStore } from "../stores/auth.store";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";

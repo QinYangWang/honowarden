@@ -1,17 +1,15 @@
-function generateHotp(key: Uint8Array, counter: bigint): string {
+async function generateHotp(key: Uint8Array, counter: bigint): Promise<string> {
   const counterBuf = new ArrayBuffer(8);
-  const view = new DataView(counterBuf);
-  view.setBigUint64(0, counter, false);
+  new DataView(counterBuf).setBigUint64(0, counter, false);
 
-  return hmacSha1(key, new Uint8Array(counterBuf)).then((hmac) => {
-    const offset = hmac[hmac.length - 1] & 0x0f;
-    const code =
-      ((hmac[offset] & 0x7f) << 24) |
-      ((hmac[offset + 1] & 0xff) << 16) |
-      ((hmac[offset + 2] & 0xff) << 8) |
-      (hmac[offset + 3] & 0xff);
-    return String(code % 1000000).padStart(6, "0");
-  });
+  const hmac = await hmacSha1(key, new Uint8Array(counterBuf));
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const code =
+    ((hmac[offset] & 0x7f) << 24) |
+    ((hmac[offset + 1] & 0xff) << 16) |
+    ((hmac[offset + 2] & 0xff) << 8) |
+    (hmac[offset + 3] & 0xff);
+  return String(code % 1000000).padStart(6, "0");
 }
 
 async function hmacSha1(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {

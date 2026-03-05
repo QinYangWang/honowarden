@@ -2,7 +2,6 @@ import type { Env } from "../env";
 import { isBlockedDomain, isValidIconContentType } from "../utils/domain";
 import { getConfig } from "./config.service";
 
-const DEFAULT_ICON_TTL = 2592000;
 const DEFAULT_NEGATIVE_TTL = 259200;
 
 export async function getIcon(env: Env, domain: string): Promise<Response> {
@@ -18,7 +17,8 @@ export async function getIcon(env: Env, domain: string): Promise<Response> {
   const cacheKey = `icon:${domain}`;
   const cached = await env.ICONS.get(cacheKey);
   if (cached) {
-    const headers = new Headers(cached.httpMetadata || {});
+    const contentType = cached.httpMetadata?.contentType || "image/x-icon";
+    const headers = new Headers({ "Content-Type": contentType });
     headers.set("Cache-Control", "public, max-age=2592000");
     return new Response(cached.body, { headers });
   }

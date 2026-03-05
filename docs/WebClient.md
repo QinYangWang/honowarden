@@ -148,12 +148,13 @@ graph LR
 
 ```typescript
 // src/client/router.tsx
-import { createBrowserRouter, Navigate } from "react-router";
-import { AuthLayout } from "./components/layouts/AuthLayout";
-import { AdminLayout } from "./components/layouts/AdminLayout";
-import { VaultLayout } from "./components/layouts/VaultLayout";
+// 使用 Hash Router 以兼容 Cloudflare Workers 的 SPA 资源托管模式
+import { createHashRouter, Navigate } from "react-router";
+import { AuthLayout } from "./layouts/AuthLayout";
+import { AdminLayout } from "./layouts/AdminLayout";
+import { VaultLayout } from "./layouts/VaultLayout";
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   // Root redirect
   { path: "/", element: <RootRedirect /> },
 

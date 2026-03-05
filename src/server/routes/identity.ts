@@ -4,7 +4,7 @@ import type { Env } from "../env";
 import { createDb } from "../db/client";
 import { users } from "../db/schema";
 import { initializeKeys } from "../auth/crypto";
-import { hashPassword, generateSalt, bufferToBase64 } from "../auth/password";
+import { hashPassword, generateSalt } from "../auth/password";
 import { generateUuid } from "../utils/id";
 import { handlePasswordGrant, handleRefreshGrant } from "../services/auth.service";
 import { getConfig } from "../services/config.service";

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, and, isNull, gt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { Env } from "../env";
 import { createDb } from "../db/client";
 import { sends } from "../db/schema";

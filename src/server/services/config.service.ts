@@ -58,7 +58,7 @@ export async function getConfig<T = string>(
   }
 
   const envKey = key.toUpperCase();
-  const envValue = (env as Record<string, unknown>)[envKey];
+  const envValue = (env as unknown as Record<string, unknown>)[envKey];
   if (envValue !== undefined) {
     return envValue as T;
   }

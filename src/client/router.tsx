@@ -1,4 +1,4 @@
-import { createHashRouter, Navigate } from "react-router-dom";
+import { createHashRouter, Navigate } from "react-router";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
 import { VaultPage } from "./pages/vault/VaultPage";

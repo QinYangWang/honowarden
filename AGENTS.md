@@ -40,5 +40,9 @@
 - Feature flags considered for new features
 - CODEOWNERS file respected
 
+## Skills
+
+- **fix-build-errors** (`/skills/fix-build-errors/SKILL.md`): 当 `npm run build` 或 `tsc` 产生编译错误时使用。提供系统化的诊断-分类-批量修复流程，包含本项目常见的类型错误模式及其修复方案。
+
 ## References
 

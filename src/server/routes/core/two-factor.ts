@@ -6,7 +6,7 @@ import { twofactor } from "../../db/schema";
 import { TwoFactorType } from "../../db/schema/enums";
 import { authMiddleware, type AuthContext } from "../../middleware/auth";
 import { generateUuid } from "../../utils/id";
-import { generateSecret, verifyTotp, generateOtpauthUri } from "../../auth/two-factor/totp";
+import { generateSecret, verifyTotp } from "../../auth/two-factor/totp";
 import { generateRecoveryCodes } from "../../auth/two-factor/recovery";
 
 const twoFactorRoute = new Hono<{ Bindings: Env; Variables: { auth: AuthContext } }>();
@@ -122,9 +122,6 @@ twoFactorRoute.post("/get-recover", async (c) => {
 });
 
 twoFactorRoute.post("/recover", async (c) => {
-  const body = await c.req.json();
-  const db = createDb(c.env.DB);
-
   return c.json({ error: "Recovery code verification" }, 501);
 });
 

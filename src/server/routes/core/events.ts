@@ -18,10 +18,7 @@ eventsRoute.get("/organizations/:orgId", orgMemberGuard(), orgAdminGuard(), asyn
   const orgId = c.req.param("orgId");
   const db = createDb(c.env.DB);
 
-  const start = c.req.query("start");
-  const end = c.req.query("end");
-
-  let query = db.select().from(event).where(eq(event.orgUuid, orgId)).orderBy(desc(event.eventDate));
+  const query = db.select().from(event).where(eq(event.orgUuid, orgId)).orderBy(desc(event.eventDate));
 
   const events = await query;
   return c.json({

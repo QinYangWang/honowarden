@@ -4,10 +4,8 @@ import type { Env } from "../env";
 import { users, devices } from "../db/schema";
 import { MembershipType, MembershipStatus } from "../db/schema/enums";
 import { usersOrganizations } from "../db/schema/organizations";
-import { verifyPassword, hashPassword, generateSalt, bufferToBase64 } from "../auth/password";
+import { verifyPassword } from "../auth/password";
 import { generateLoginToken, generateRefreshToken } from "../auth/jwt";
-import { generateUuid } from "../utils/id";
-import { getConfig } from "./config.service";
 
 export interface TokenResponse {
   access_token: string;
@@ -29,12 +27,12 @@ export interface TokenResponse {
 
 export async function handlePasswordGrant(
   db: Database,
-  env: Env,
+  _env: Env,
   domain: string,
   email: string,
   passwordHash: string,
   scope: string,
-  clientId: string,
+  _clientId: string,
   deviceType: number,
   deviceIdentifier: string,
   deviceName: string,
@@ -158,7 +156,7 @@ export async function handlePasswordGrant(
 
 export async function handleRefreshGrant(
   db: Database,
-  env: Env,
+  _env: Env,
   domain: string,
   refreshToken: string,
 ): Promise<TokenResponse> {

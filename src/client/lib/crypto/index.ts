@@ -3,8 +3,8 @@ export async function deriveKey(
   email: string,
   kdf: number,
   kdfIterations: number,
-  kdfMemory?: number | null,
-  kdfParallelism?: number | null,
+  _kdfMemory?: number | null,
+  _kdfParallelism?: number | null,
 ): Promise<ArrayBuffer> {
   const emailNorm = email.trim().toLowerCase();
   const salt = new TextEncoder().encode(emailNorm);

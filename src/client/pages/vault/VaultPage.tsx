@@ -61,7 +61,7 @@ export function VaultPage() {
             Vault ({filtered.length})
           </h2>
           <Dialog open={showAdd} onOpenChange={setShowAdd}>
-            <DialogTrigger asChild>
+            <DialogTrigger>
               <Button size="sm">+ Add</Button>
             </DialogTrigger>
             <DialogContent>

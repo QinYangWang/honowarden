@@ -5,7 +5,7 @@ import { createDb } from "../../db/client";
 import { sends } from "../../db/schema";
 import { authMiddleware, type AuthContext } from "../../middleware/auth";
 import { generateUuid } from "../../utils/id";
-import { hashPassword, generateSalt, verifyPassword, bufferToBase64 } from "../../auth/password";
+import { hashPassword, generateSalt } from "../../auth/password";
 
 const sendsRoute = new Hono<{ Bindings: Env; Variables: { auth: AuthContext } }>();
 

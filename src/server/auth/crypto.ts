@@ -18,7 +18,7 @@ export async function initializeKeys(env: Env) {
 
   publicKey = await crypto.subtle.importKey(
     "jwk",
-    jwk,
+    jwk as JsonWebKey,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
     true,
     ["verify"]

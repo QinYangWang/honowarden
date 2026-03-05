@@ -70,7 +70,7 @@ HonoWarden 是 [Vaultwarden](https://github.com/dani-garcia/vaultwarden) 的无�
 
 ```bash
 # 安装依赖
-npm install
+bun install
 
 # 配置环境变量
 cp .dev.vars.example .dev.vars
@@ -83,8 +83,8 @@ npx drizzle-kit generate
 npx wrangler d1 migrations apply honowarden-db --local
 
 # 本地开发
-npm run dev
+bun run dev
 
 # 部署到 Cloudflare
-npm run deploy
+bun run deploy
 ```

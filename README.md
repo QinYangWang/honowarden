@@ -87,4 +87,10 @@ bun run dev
 
 # 部署到 Cloudflare
 bun run deploy
+
+# 首次生成 ADMIN_TOKEN 和 RSA_PRIVATE_KEY
+npm run generate-keys
+
+# 强制重新生成 ADMIN_TOKEN 和 RSA_PRIVATE_KEY
+npm run generate-keys -- --force
 ```

@@ -68,6 +68,7 @@
 		"check": "tsc && vite build && wrangler deploy --dry-run",
 		"deploy": "wrangler deploy",
 		"dev": "vite",
+		"generate-keys": "node scripts/generate-keys.mjs",
 		"lint": "eslint .",
 		"preview": "npm run build && vite preview"
 	},

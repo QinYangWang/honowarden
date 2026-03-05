@@ -1,6 +1,7 @@
-RSA_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
-YOUR_RSA_PRIVATE_KEY_HERE
------END RSA PRIVATE KEY-----"
-ADMIN_TOKEN="admin_password_for_dev"
+# Run `npm run generate-keys` to auto-generate RSA_PRIVATE_KEY and ADMIN_TOKEN
+RSA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+YOUR_PKCS8_RSA_PRIVATE_KEY_HERE
+-----END PRIVATE KEY-----"
+ADMIN_TOKEN="your_admin_token_here"
 RESEND_API_KEY="re_test_your_key_here"
 DOMAIN="http://localhost:8787"

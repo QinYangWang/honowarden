@@ -13,7 +13,7 @@ export async function purgeSends(env: Env): Promise<void> {
     if (send.atype === 1) {
       try {
         await env.SENDS.delete(`${send.uuid}`);
-      } catch {}
+      } catch { /* R2 delete is best-effort */ }
     }
   }
 

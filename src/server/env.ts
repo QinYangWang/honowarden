@@ -5,6 +5,7 @@
 // from wrangler.json. Only secrets need to be declared here.
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cloudflare {
     interface Env {
       RSA_PRIVATE_KEY: string;

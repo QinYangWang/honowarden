@@ -79,7 +79,7 @@ async function findIconUrl(domain: string): Promise<string | null> {
       if (resp.ok && isValidIconContentType(resp.headers.get("Content-Type") || "")) {
         return url;
       }
-    } catch {}
+    } catch { /* HEAD probe may fail, try next candidate */ }
   }
 
   try {
@@ -94,7 +94,7 @@ async function findIconUrl(domain: string): Promise<string | null> {
       if (href.startsWith("//")) return `https:${href}`;
       return `https://${domain}${href.startsWith("/") ? "" : "/"}${href}`;
     }
-  } catch {}
+  } catch { /* HTML fetch may fail for unreachable domains */ }
 
   return null;
 }

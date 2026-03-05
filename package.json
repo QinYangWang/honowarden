@@ -75,6 +75,7 @@
 		"lint": "eslint .",
 		"postinstall": "node scripts/setup-wrangler.mjs",
 		"preview": "npm run build && vite preview",
+		"test": "vitest",
 		"setup": "node scripts/setup-wrangler.mjs && npm run generate-keys"
 	},
 	"type": "module"

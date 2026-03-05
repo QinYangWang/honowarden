@@ -25,7 +25,7 @@ honowarden/
 ```
 src/server/
 ├── index.ts                    # Worker 入口，Hono app 创建与导出
-├── env.ts                      # Env bindings 类型定义
+├── env.ts                      # Secrets 类型声明 (扩展 worker-configuration.d.ts 的自动生成类型)
 │
 ├── routes/                     # API 路由 (对应 Vaultwarden src/api/)
 │   ├── identity.ts             # /identity/*, /connect/* - 登录、注册、预认证
@@ -352,7 +352,7 @@ graph TD
 | Vaultwarden 文件 | HonoWarden 对应 |
 |------------------|-----------------|
 | `src/main.rs` | `src/server/index.ts` |
-| `src/config.rs` | `src/server/services/config.service.ts` + `src/server/env.ts` |
+| `src/config.rs` | `src/server/services/config.service.ts` + `src/server/env.ts` + `worker-configuration.d.ts` (auto-generated) |
 | `src/auth.rs` | `src/server/auth/jwt.ts` + `src/server/auth/tokens.ts` |
 | `src/crypto.rs` | `src/server/auth/crypto.ts` |
 | `src/error.rs` | `src/server/middleware/error-handler.ts` |
@@ -397,7 +397,7 @@ graph TD
     "drizzle-kit": "^0.x",
     "vitest": "^2.x",
     "miniflare": "^3.x",
-    "@cloudflare/workers-types": "^4.x",
+    // @cloudflare/workers-types 不再需要，改用 `npm run cf-typegen` 生成 worker-configuration.d.ts
     "typescript": "^5.x",
     "vite": "^6.x",
     "@vitejs/plugin-react": "^4.x"

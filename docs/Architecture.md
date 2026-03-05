@@ -275,43 +275,54 @@ export { AnonymousNotificationHub } from "./durable-objects/anonymous-hub";
 
 ## Bindings 类型定义
 
+Env 类型由两部分组成：
+
+1. **自动生成部分** — 运行 `npm run cf-typegen`（即 `wrangler types`）从 `wrangler.json` 自动生成到 `worker-configuration.d.ts`，包含所有 D1/R2/KV/DO/Queue/vars 绑定及 Workers 运行时类型。
+2. **手动声明部分** — `src/server/env.ts` 通过 `declare global` 扩展 `Cloudflare.Env`，补充通过 `wrangler secret` / `.dev.vars` 设置的 Secrets。
+
 ```typescript
-interface Env {
-  // D1
-  DB: D1Database;
-
-  // R2
-  ATTACHMENTS: R2Bucket;
-  SENDS: R2Bucket;
-  ICONS: R2Bucket;
-
-  // KV
-  CONFIG: KVNamespace;
-  RATE_LIMIT: KVNamespace;
-
-  // Durable Objects
-  USER_HUB: DurableObjectNamespace;
-  ANON_HUB: DurableObjectNamespace;
-
-  // Queues
-  EMAIL_QUEUE: Queue;
-  PUSH_QUEUE: Queue;
-  EVENT_QUEUE: Queue;
-
-  // Secrets
-  RSA_PRIVATE_KEY: string;
-  ADMIN_TOKEN: string;
-  RESEND_API_KEY: string;
-  DOMAIN: string;
-  DUO_IKEY?: string;
-  DUO_SKEY?: string;
-  DUO_HOST?: string;
-  YUBICO_CLIENT_ID?: string;
-  YUBICO_SECRET_KEY?: string;
-  PUSH_INSTALLATION_ID?: string;
-  PUSH_INSTALLATION_KEY?: string;
+// worker-configuration.d.ts (自动生成，不要手动编辑)
+declare namespace Cloudflare {
+  interface Env {
+    CONFIG: KVNamespace;
+    RATE_LIMIT: KVNamespace;
+    ATTACHMENTS: R2Bucket;
+    SENDS: R2Bucket;
+    ICONS: R2Bucket;
+    DB: D1Database;
+    EMAIL_QUEUE: Queue;
+    PUSH_QUEUE: Queue;
+    EVENT_QUEUE: Queue;
+    DOMAIN: string;
+    USER_HUB: DurableObjectNamespace<UserNotificationHub>;
+    ANON_HUB: DurableObjectNamespace<AnonymousNotificationHub>;
+  }
 }
 ```
+
+```typescript
+// src/server/env.ts (手动维护，仅声明 Secrets)
+declare global {
+  namespace Cloudflare {
+    interface Env {
+      RSA_PRIVATE_KEY: string;
+      ADMIN_TOKEN: string;
+      RESEND_API_KEY: string;
+      DUO_IKEY?: string;
+      DUO_SKEY?: string;
+      DUO_HOST?: string;
+      YUBICO_CLIENT_ID?: string;
+      YUBICO_SECRET_KEY?: string;
+      PUSH_INSTALLATION_ID?: string;
+      PUSH_INSTALLATION_KEY?: string;
+    }
+  }
+}
+type Env = Cloudflare.Env;
+export type { Env };
+```
+
+> **重要**: 每次修改 `wrangler.json` 中的绑定后，必须重新运行 `npm run cf-typegen` 以更新类型。
 
 ## 与 Vaultwarden 的层级映射
 

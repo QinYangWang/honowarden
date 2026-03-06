@@ -229,16 +229,15 @@ export async function emergencyReminder(db: Database, env: Env): Promise<void> {
 
 ```typescript
 // src/server/jobs/purge-auth-requests.ts
-export async function purgeAuthRequests(db: Database): Promise<void> {
-  const expiry = new Date(Date.now() - 15 * 60_000); // 15 minutes
-
-  await db.delete(authRequests)
-    .where(and(
-      lte(authRequests.creationDate, expiry),
-      isNull(authRequests.approved)
-    ));
+export async function purgeAuthRequests(env: Env): Promise<void> {
+  const db = createDb(env.DB);
+  await db
+    .delete(authRequests)
+    .where(sql`${authRequests.creationDate} <= unixepoch('now', '-15 minutes')`);
 }
 ```
+
+> 使用 SQLite 的 `unixepoch` 在数据库端计算 cutoff，避免 D1 参数绑定导致的 Date 序列化问题。
 
 #### 事件清理
 

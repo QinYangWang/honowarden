@@ -100,7 +100,7 @@ identity.post("/accounts/prelogin", async (c) => {
 
   return c.json({
     kdf: 0,
-    kdfIterations: 100000,
+    kdfIterations: 600000,
     kdfMemory: null,
     kdfParallelism: null,
   });
@@ -125,12 +125,14 @@ identity.post("/accounts/register", async (c) => {
     throw new AppError(400, "email_exists", "Email is already registered.");
   }
 
-  // Cloudflare Workers limit: server-side hashing iterations <= 100,000
-  const requestedIterations = body.kdfIterations || 100000;
-  const iterations = Math.min(requestedIterations, 100000);
+  // Client-side iterations (for client KDF) - Bitwarden defaults to 600,000
+  const clientIterations = body.kdfIterations || 600000;
+
+  // Server-side iterations (for server hashing) - Cloudflare limit is 100,000
+  const serverIterations = Math.min(clientIterations, 100000);
 
   const salt = generateSalt();
-  const passwordHashResult = await hashPassword(body.masterPasswordHash, salt, iterations);
+  const passwordHashResult = await hashPassword(body.masterPasswordHash, salt, serverIterations);
 
   const uuid = generateUuid();
   const now = new Date();
@@ -141,14 +143,14 @@ identity.post("/accounts/register", async (c) => {
     name: body.name || email.split("@")[0],
     passwordHash: Buffer.from(passwordHashResult),
     salt: Buffer.from(salt),
-    passwordIterations: iterations,
+    passwordIterations: serverIterations,
     passwordHint: body.masterPasswordHint || null,
     akey: body.key || "",
     privateKey: body.keys?.encryptedPrivateKey || null,
     publicKey: body.keys?.publicKey || null,
     securityStamp: generateUuid(),
     clientKdfType: body.kdf ?? 0,
-    clientKdfIter: iterations,
+    clientKdfIter: clientIterations,
     clientKdfMemory: body.kdfMemory ?? null,
     clientKdfParallelism: body.kdfParallelism ?? null,
     createdAt: now,

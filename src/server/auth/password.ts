@@ -55,24 +55,31 @@ export async function verifyPassword(
   storedSalt: ArrayBuffer,
   iterations: number,
 ): Promise<boolean> {
-  // Cloudflare Workers support a maximum of 100,000 PBKDF2 iterations.
-  const cappedIterations = Math.min(iterations, 100000);
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      base64ToBuffer(passwordHash),
+      "PBKDF2",
+      false,
+      ["deriveBits"],
+    );
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    base64ToBuffer(passwordHash),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
+    const derived = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt: storedSalt, iterations, hash: "SHA-256" },
+      key,
+      256,
+    );
 
-  const derived = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt: storedSalt, iterations: cappedIterations, hash: "SHA-256" },
-    key,
-    256,
-  );
-
-  return timingSafeEqual(new Uint8Array(derived), new Uint8Array(storedHash));
+    return timingSafeEqual(new Uint8Array(derived), new Uint8Array(storedHash));
+  } catch (error) {
+    if (error instanceof Error && error.name === "NotSupportedError" && iterations > 100000) {
+      console.warn(`PBKDF2 with ${iterations} iterations not supported. Capping to 100,000.`);
+      // Retry with 100,000 cap to at least attempt comparison with newer capped accounts
+      return verifyPassword(passwordHash, storedHash, storedSalt, 100000);
+    }
+    console.error("verifyPassword unexpected error:", error);
+    return false;
+  }
 }
 
 export async function hashPassword(
@@ -80,22 +87,27 @@ export async function hashPassword(
   salt: ArrayBuffer,
   iterations: number,
 ): Promise<ArrayBuffer> {
-  // Cloudflare Workers support a maximum of 100,000 PBKDF2 iterations.
-  const cappedIterations = Math.min(iterations, 100000);
+  try {
+    const key = await crypto.subtle.importKey(
+      "raw",
+      base64ToBuffer(passwordHash),
+      "PBKDF2",
+      false,
+      ["deriveBits"],
+    );
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    base64ToBuffer(passwordHash),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
-
-  return crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: cappedIterations, hash: "SHA-256" },
-    key,
-    256,
-  );
+    return await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+      key,
+      256,
+    );
+  } catch (error) {
+    if (error instanceof Error && error.name === "NotSupportedError" && iterations > 100000) {
+      console.warn(`PBKDF2 with ${iterations} iterations not supported. Capping to 100,000.`);
+      return hashPassword(passwordHash, salt, 100000);
+    }
+    throw error;
+  }
 }
 
 export function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {

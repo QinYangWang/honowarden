@@ -195,6 +195,7 @@ sequenceDiagram
 
 ```typescript
 // src/server/auth/password.ts
+// base64ToBuffer 内部调用 normalizeBase64，支持 base64url、去空白、补齐 padding
 
 export async function verifyPassword(
   passwordHash: string,  // 客户端发送的 Base64 编码哈希

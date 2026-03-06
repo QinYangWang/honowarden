@@ -33,6 +33,7 @@ src/server/
 │   ├── core/
 │   │   ├── index.ts            # 核心路由聚合
 │   │   ├── accounts.ts         # /api/accounts/* - 用户账户管理
+│   │   ├── devices.ts          # /api/devices/* - 设备管理、knowndevice
 │   │   ├── ciphers.ts          # /api/ciphers/* - 密码库条目 CRUD
 │   │   ├── folders.ts          # /api/folders/* - 文件夹 CRUD
 │   │   ├── organizations.ts    # /api/organizations/* - 组织管理
@@ -364,6 +365,7 @@ graph TD
 | `src/api/push.rs` | `src/server/services/push.service.ts` |
 | `src/api/web.rs` | 不再需要 -- Vite + `@cloudflare/vite-plugin` 自动处理静态资源 |
 | `src/api/core/accounts.rs` | `src/server/routes/core/accounts.ts` |
+| `src/api/core/devices.rs` | `src/server/routes/core/devices.ts` |
 | `src/api/core/ciphers.rs` | `src/server/routes/core/ciphers.ts` |
 | `src/api/core/folders.rs` | `src/server/routes/core/folders.ts` |
 | `src/api/core/organizations.rs` | `src/server/routes/core/organizations.ts` |

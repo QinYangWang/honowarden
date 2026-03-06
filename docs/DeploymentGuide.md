@@ -150,7 +150,7 @@ node scripts/setup-wrangler.mjs
 
 脚本会自动处理以下资源：
 - **D1**: `honowarden-db`
-- **KV**: `honowarden-CONFIG`, `honowarden-RATE_LIMIT`
+- **KV**: `honowarden-config`, `honowarden-rate-limit`（binding 小写、`_` → `-`）
 - **R2**: `honowarden-attachments`, `honowarden-sends`, `honowarden-icons`
 - **Queues**: `honowarden-email`, `honowarden-push`, `honowarden-events`, `honowarden-dlq`
 

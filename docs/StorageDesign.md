@@ -253,6 +253,8 @@ async function fetchIcon(domain: string): Promise<{ data: ArrayBuffer; contentTy
 | `honowarden-config` | `CONFIG` | 动态配置、图标缓存标记 | 可变 |
 | `honowarden-rate-limit` | `RATE_LIMIT` | 速率限制计数器 | 60-3600s |
 
+> KV namespace 标题由 `setup-wrangler.mjs` 按 `{workerName}-{binding}` 生成，binding 转为小写、`_` 替换为 `-`。
+
 ### KV 使用场景
 
 #### 1. 动态配置

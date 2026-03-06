@@ -9,11 +9,13 @@ import { sendsRoute } from "./sends";
 import { twoFactorRoute } from "./two-factor";
 import { emergencyAccessRoute } from "./emergency-access";
 import { eventsRoute } from "./events";
+import { devicesRoute } from "./devices";
 import { getConfig } from "../../services/config.service";
 
 const core = new Hono<{ Bindings: Env }>();
 
 core.route("/accounts", accounts);
+core.route("/devices", devicesRoute);
 core.route("/sync", sync);
 core.route("/ciphers", ciphersRoute);
 core.route("/folders", foldersRoute);

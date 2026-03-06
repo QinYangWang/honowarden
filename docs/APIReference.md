@@ -225,13 +225,15 @@ SSO 回调端点。
 
 ### 设备管理
 
-| 方法 | 路径 | 认证 | 描述 |
-|------|------|------|------|
-| GET | `/api/devices` | Bearer | 列出所有设备 |
-| GET | `/api/devices/{id}` | Bearer | 获取设备详情 |
-| GET | `/api/devices/knowndevice` | Bearer | 检查已知设备 |
-| PUT | `/api/devices/{id}/token` | Bearer | 注册 Push Token |
-| PUT | `/api/devices/{id}/clear-token` | Bearer | 清除 Push Token |
+| 方法 | 路径 | 认证 | 描述 | 实现 |
+|------|------|------|------|------|
+| GET | `/api/devices` | Bearer | 列出所有设备 | ✓ |
+| GET | `/api/devices/{id}` | Bearer | 获取设备详情 | ✓ |
+| GET | `/api/devices/knowndevice` | Bearer | 检查已知设备（Login with Device 流程） | ✓ |
+| PUT | `/api/devices/{id}/token` | Bearer | 注册 Push Token | 待实现 |
+| PUT | `/api/devices/{id}/clear-token` | Bearer | 清除 Push Token | 待实现 |
+
+> `/api/accounts/devices` 仍保留，与 `/api/devices` 返回相同数据。
 
 ### API Key
 

@@ -1,5 +1,16 @@
+function normalizeBase64(b64: string): string {
+  if (!b64 || typeof b64 !== "string") return "";
+  const s = b64.replace(/\s/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  const pad = s.length % 4;
+  return pad ? s + "=".repeat(4 - pad) : s;
+}
+
 export function base64ToBuffer(b64: string): ArrayBuffer {
-  const binary = atob(b64);
+  const normalized = normalizeBase64(b64);
+  if (!normalized || !/^[A-Za-z0-9+/=]+$/.test(normalized)) {
+    throw new Error("Invalid base64 input");
+  }
+  const binary = atob(normalized);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);

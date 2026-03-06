@@ -100,7 +100,7 @@ identity.post("/accounts/prelogin", async (c) => {
 
   return c.json({
     kdf: 0,
-    kdfIterations: 600000,
+    kdfIterations: 100000,
     kdfMemory: null,
     kdfParallelism: null,
   });
@@ -125,7 +125,10 @@ identity.post("/accounts/register", async (c) => {
     throw new AppError(400, "email_exists", "Email is already registered.");
   }
 
-  const iterations = body.kdfIterations || 600000;
+  // Cloudflare Workers limit: server-side hashing iterations <= 100,000
+  const requestedIterations = body.kdfIterations || 100000;
+  const iterations = Math.min(requestedIterations, 100000);
+
   const salt = generateSalt();
   const passwordHashResult = await hashPassword(body.masterPasswordHash, salt, iterations);
 

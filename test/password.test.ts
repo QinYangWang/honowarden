@@ -52,4 +52,17 @@ describe("Password Utils", () => {
     const decoded = new Uint8Array(base64ToBuffer(b64));
     expect(decoded).toEqual(original);
   });
+
+  it("caps PBKDF2 iterations to 100,000", async () => {
+    const salt = generateSalt();
+    const passwordHash = "dGVzdA==";
+
+    // This should not throw even if the value is large, 
+    // because we cap it internally (Cloudflare Workers only support up to 100k)
+    const hash = await hashPassword(passwordHash, salt, 200000);
+    const valid = await verifyPassword(passwordHash, hash, salt, 200000);
+
+    expect(valid).toBe(true);
+    expect(hash.byteLength).toBe(32);
+  });
 });

@@ -55,6 +55,9 @@ export async function verifyPassword(
   storedSalt: ArrayBuffer,
   iterations: number,
 ): Promise<boolean> {
+  // Cloudflare Workers support a maximum of 100,000 PBKDF2 iterations.
+  const cappedIterations = Math.min(iterations, 100000);
+
   const key = await crypto.subtle.importKey(
     "raw",
     base64ToBuffer(passwordHash),
@@ -64,7 +67,7 @@ export async function verifyPassword(
   );
 
   const derived = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt: storedSalt, iterations, hash: "SHA-256" },
+    { name: "PBKDF2", salt: storedSalt, iterations: cappedIterations, hash: "SHA-256" },
     key,
     256,
   );
@@ -77,6 +80,9 @@ export async function hashPassword(
   salt: ArrayBuffer,
   iterations: number,
 ): Promise<ArrayBuffer> {
+  // Cloudflare Workers support a maximum of 100,000 PBKDF2 iterations.
+  const cappedIterations = Math.min(iterations, 100000);
+
   const key = await crypto.subtle.importKey(
     "raw",
     base64ToBuffer(passwordHash),
@@ -86,7 +92,7 @@ export async function hashPassword(
   );
 
   return crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations: cappedIterations, hash: "SHA-256" },
     key,
     256,
   );

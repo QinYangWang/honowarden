@@ -69,6 +69,7 @@
 		"deploy": "wrangler deploy",
 		"dev": "vite",
 		"cf-dev": "wrangler dev",
+		"tail": "wrangler tail",
 		"db:migrate:local": "wrangler d1 migrations apply honowarden-db --local",
 		"db:migrate:remote": "wrangler d1 migrations apply honowarden-db --remote",
 		"generate-keys": "node scripts/generate-keys.mjs",

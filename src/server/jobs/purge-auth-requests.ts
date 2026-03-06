@@ -7,5 +7,5 @@ export async function purgeAuthRequests(env: Env): Promise<void> {
   const db = createDb(env.DB);
   await db
     .delete(authRequests)
-    .where(sql`${authRequests.creationDate} <= unixepoch('now', '-15 minutes')`);
+    .where(sql`${authRequests.creationDate} <= cast(strftime('%s', datetime('now', '-15 minutes')) as integer)`);
 }

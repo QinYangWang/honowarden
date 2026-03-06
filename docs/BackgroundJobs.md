@@ -233,11 +233,11 @@ export async function purgeAuthRequests(env: Env): Promise<void> {
   const db = createDb(env.DB);
   await db
     .delete(authRequests)
-    .where(sql`${authRequests.creationDate} <= unixepoch('now', '-15 minutes')`);
+    .where(sql`${authRequests.creationDate} <= cast(strftime('%s', datetime('now', '-15 minutes')) as integer)`);
 }
 ```
 
-> 使用 SQLite 的 `unixepoch` 在数据库端计算 cutoff，避免 D1 参数绑定导致的 Date 序列化问题。
+> 使用 `strftime` + `datetime` 在数据库端计算 cutoff，避免 D1 参数绑定问题；`unixepoch` 在 D1 的 SQLite 版本中可能不可用。
 
 #### 事件清理
 

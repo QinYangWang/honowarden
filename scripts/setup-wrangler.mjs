@@ -137,9 +137,10 @@ async function main() {
     db.database_id = await ensureD1(accountId, db.database_name);
   }
 
-  // KV namespaces — use "{workerName}-{BINDING}" as the title
+  // KV namespaces — use "{workerName}-{binding}" as the title (binding lowercased, _ → -)
   for (const kv of config.kv_namespaces || []) {
-    const title = `${workerName}-${kv.binding}`;
+    const bindingSlug = String(kv.binding).toLowerCase().replace(/_/g, "-");
+    const title = `${workerName}-${bindingSlug}`;
     kv.id = await ensureKV(accountId, title);
   }
 

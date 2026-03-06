@@ -7,8 +7,17 @@ let publicKey: CryptoKey;
 export async function initializeKeys(env: Env) {
   if (privateKey && publicKey) return;
 
-  const pemData = env.RSA_PRIVATE_KEY;
-  privateKey = await importPKCS8(pemData, "RS256", { extractable: true });
+  const pemData = env.RSA_PRIVATE_KEY?.trim();
+  if (!pemData) {
+    throw new Error("RSA_PRIVATE_KEY is missing from environment");
+  }
+
+  try {
+    privateKey = await importPKCS8(pemData, "RS256", { extractable: true });
+  } catch (error) {
+    console.error("Failed to import RSA_PRIVATE_KEY:", error);
+    throw new Error("Invalid RSA_PRIVATE_KEY format. Expected PKCS8 PEM string.");
+  }
 
   const jwk = await exportJWK(privateKey);
   delete jwk.d;

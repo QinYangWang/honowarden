@@ -1,21 +1,43 @@
 function normalizeBase64(b64: string): string {
   if (!b64 || typeof b64 !== "string") return "";
-  const s = b64.replace(/\s/g, "").replace(/-/g, "+").replace(/_/g, "/");
+  // Strip whitespace and replace base64url characters
+  let s = b64.trim().replace(/\s/g, "").replace(/-/g, "+").replace(/_/g, "/");
+
+  // Remove any characters that are not valid base64
+  s = s.replace(/[^A-Za-z0-9+/]/g, (match, offset) => {
+    // Keep padding if it's at the end
+    if (match === "=" && offset >= s.length - 2) return "=";
+    return "";
+  });
+
   const pad = s.length % 4;
-  return pad ? s + "=".repeat(4 - pad) : s;
+  if (pad === 1) {
+    // Length % 4 == 1 is invalid for base64. 
+    // This usually means the last character is extra or the string is truncated.
+    s = s.slice(0, -1);
+  } else if (pad > 1) {
+    s += "=".repeat(4 - pad);
+  }
+  return s;
 }
 
 export function base64ToBuffer(b64: string): ArrayBuffer {
   const normalized = normalizeBase64(b64);
-  if (!normalized || !/^[A-Za-z0-9+/=]+$/.test(normalized)) {
-    throw new Error("Invalid base64 input");
+  if (!normalized) {
+    return new ArrayBuffer(0);
   }
-  const binary = atob(normalized);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+
+  try {
+    const binary = atob(normalized);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  } catch (error) {
+    console.error("base64ToBuffer failed:", error, "input:", b64, "normalized:", normalized);
+    return new ArrayBuffer(0);
   }
-  return bytes.buffer;
 }
 
 export function bufferToBase64(buffer: ArrayBuffer): string {

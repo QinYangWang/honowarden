@@ -7,7 +7,7 @@
 import { webcrypto } from "node:crypto";
 
 const BASE = process.argv[2] || "http://localhost:5174";
-const EMAIL = "Test@Test.com";
+const EMAIL = "Test1@Test.com";
 const PASSWORD = "TestPassword123!@#";
 const NAME = "Test User";
 

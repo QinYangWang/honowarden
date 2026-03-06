@@ -40,7 +40,7 @@
 	"migrations": [
 		{
 			"tag": "v1",
-			"new_classes": ["UserNotificationHub", "AnonymousNotificationHub"]
+			"new_sqlite_classes": ["UserNotificationHub", "AnonymousNotificationHub"]
 		}
 	],
 	"queues": {

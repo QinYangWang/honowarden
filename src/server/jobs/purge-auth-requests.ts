@@ -1,11 +1,8 @@
 import type { Env } from "../env";
-import { createDb } from "../db/client";
-import { authRequests } from "../db/schema";
-import { sql } from "drizzle-orm";
 
 export async function purgeAuthRequests(env: Env): Promise<void> {
-  const db = createDb(env.DB);
-  await db
-    .delete(authRequests)
-    .where(sql`${authRequests.creationDate} <= cast(strftime('%s', datetime('now', '-15 minutes')) as integer)`);
+  const cutoff = Math.floor((Date.now() - 15 * 60_000) / 1000);
+  await env.DB.prepare("DELETE FROM auth_requests WHERE creation_date <= ?")
+    .bind(cutoff)
+    .run();
 }

@@ -230,14 +230,14 @@ export async function emergencyReminder(db: Database, env: Env): Promise<void> {
 ```typescript
 // src/server/jobs/purge-auth-requests.ts
 export async function purgeAuthRequests(env: Env): Promise<void> {
-  const db = createDb(env.DB);
-  await db
-    .delete(authRequests)
-    .where(sql`${authRequests.creationDate} <= cast(strftime('%s', datetime('now', '-15 minutes')) as integer)`);
+  const cutoff = Math.floor((Date.now() - 15 * 60_000) / 1000);
+  await env.DB.prepare("DELETE FROM auth_requests WHERE creation_date <= ?")
+    .bind(cutoff)
+    .run();
 }
 ```
 
-> 使用 `strftime` + `datetime` 在数据库端计算 cutoff，避免 D1 参数绑定问题；`unixepoch` 在 D1 的 SQLite 版本中可能不可用。
+> 使用原始 D1 API 与整数参数，避免 Drizzle 序列化导致的 D1 查询失败。
 
 #### 事件清理
 

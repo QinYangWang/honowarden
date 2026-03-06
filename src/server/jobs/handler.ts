@@ -4,21 +4,25 @@ import { purgeTrash } from "./purge-trash";
 import { purgeAuthRequests } from "./purge-auth-requests";
 import { eventCleanup } from "./event-cleanup";
 
-const CRON_MAP: Record<string, (env: Env) => Promise<void>> = {
-  "5 * * * *": purgeSends,
-  "5 0 * * *": purgeTrash,
-  "*/1 * * * *": purgeAuthRequests,
-  "10 0 * * *": eventCleanup,
-};
+async function runScheduledTasks(env: Env): Promise<void> {
+  const now = new Date();
+  const minute = now.getUTCMinutes();
+  const hour = now.getUTCHours();
+
+  await purgeAuthRequests(env);
+
+  if (minute === 5) {
+    await purgeSends(env);
+    if (hour === 0) await purgeTrash(env);
+  }
+  if (minute === 10 && hour === 0) {
+    await eventCleanup(env);
+  }
+}
 
 export async function handleScheduled(
-  event: ScheduledEvent,
+  _event: ScheduledEvent,
   env: Env,
 ): Promise<void> {
-  const handler = CRON_MAP[event.cron];
-  if (handler) {
-    await handler(env);
-  } else {
-    console.log(`No handler for cron: ${event.cron}`);
-  }
+  await runScheduledTasks(env);
 }

@@ -9,82 +9,63 @@ Vaultwarden 使用 `job_scheduler_ng` 在独立线程中运行 cron 任务。Hon
 
 ## Cron Triggers
 
+### 免费版限制
+
+Cloudflare Workers 免费版每账号最多 **5 个** Cron Triggers（[官方限制](https://developers.cloudflare.com/workers/platform/limits/)）。为满足此限制，HonoWarden 使用 **1 个 cron**（`*/1 * * * *` 每分钟触发），在 handler 内按当前 UTC 时间分发执行各任务。
+
 ### 任务映射
 
-| 任务 | Vaultwarden Cron | HonoWarden Cron | 功能描述 |
-|------|-----------------|-----------------|---------|
-| Send 清理 | `0 5 * * * *` | `5 * * * *` | 删除过期 Send 及其 R2 文件 |
-| 回收站清理 | `0 5 0 * * *` | `5 0 * * *` | 硬删超期软删 Cipher (默认 30 天) |
-| 未完成 2FA 通知 | `30 * * * * *` | `*/1 * * * *` | 邮件通知有未完成 2FA 登录的用户 |
-| Emergency 超时 | `0 7 * * * *` | `7 * * * *` | 自动批准超过等待期的紧急访问 |
-| Emergency 提醒 | `0 3 * * * *` | `3 * * * *` | 提醒授权人有待处理的恢复请求 |
-| Auth Request 清理 | `30 * * * * *` | `*/1 * * * *` | 删除过期的无密码登录请求 |
-| Duo Context 清理 | `30 * * * * *` | `*/1 * * * *` | 清理过期 Duo 认证上下文 |
-| 事件清理 | `0 10 0 * * *` | `10 0 * * *` | 删除超过保留期的事件日志 |
-| SSO 清理 | `0 20 0 * * *` | `20 0 * * *` | 清理未完成的 SSO 认证数据 |
+| 任务 | Vaultwarden Cron | HonoWarden 触发条件 | 功能描述 |
+|------|-----------------|---------------------|---------|
+| Auth Request 清理 | `30 * * * * *` | 每分钟 | 删除过期的无密码登录请求（15 分钟） |
+| Send 清理 | `0 5 * * * *` | minute === 5 | 删除过期 Send 及其 R2 文件 |
+| 回收站清理 | `0 5 0 * * *` | minute === 5 && hour === 0 | 硬删超期软删 Cipher (默认 30 天) |
+| 事件清理 | `0 10 0 * * *` | minute === 10 && hour === 0 | 删除超过保留期的事件日志 |
+| 未完成 2FA 通知 | `30 * * * * *` | （待实现） | 邮件通知有未完成 2FA 登录的用户 |
+| Emergency 超时 | `0 7 * * * *` | （待实现） | 自动批准超过等待期的紧急访问 |
+| Emergency 提醒 | `0 3 * * * *` | （待实现） | 提醒授权人有待处理的恢复请求 |
+| Duo Context 清理 | `30 * * * * *` | （待实现） | 清理过期 Duo 认证上下文 |
+| SSO 清理 | `0 20 0 * * *` | （待实现） | 清理未完成的 SSO 认证数据 |
 
 > Vaultwarden 使用 6 位 cron（含秒），Cloudflare Cron Triggers 使用标准 5 位 cron（不含秒）。
 
 ### wrangler.template.json 配置
 
-```toml
-[triggers]
-crons = [
-  "5 * * * *",     # Send purge (hourly at :05)
-  "5 0 * * *",     # Trash purge (daily at 00:05)
-  "*/1 * * * *",   # 2FA incomplete + Auth request purge + Duo purge (every minute)
-  "7 * * * *",     # Emergency timeout (hourly at :07)
-  "3 * * * *",     # Emergency reminder (hourly at :03)
-  "10 0 * * *",    # Event cleanup (daily at 00:10)
-  "20 0 * * *",    # SSO cleanup (daily at 00:20)
-]
+```json
+"triggers": {
+  "crons": ["*/1 * * * *"]
+}
 ```
+
+单一 cron 每分钟触发，handler 根据 `minute`、`hour` 决定执行哪些任务。
 
 ### Cron Handler
 
 ```typescript
 // src/server/jobs/handler.ts
-export async function handleCronTrigger(
-  event: ScheduledEvent,
-  env: Env,
-  ctx: ExecutionContext
-): Promise<void> {
-  const db = createDb(env.DB);
+async function runScheduledTasks(env: Env): Promise<void> {
+  const now = new Date();
+  const minute = now.getUTCMinutes();
+  const hour = now.getUTCHours();
 
-  switch (event.cron) {
-    case "5 * * * *":
-      await purgeSends(db, env);
-      break;
+  await purgeAuthRequests(env);
 
-    case "5 0 * * *":
-      await purgeTrash(db, env);
-      break;
-
-    case "*/1 * * * *":
-      await Promise.all([
-        notifyIncomplete2fa(db, env),
-        purgeAuthRequests(db),
-        purgeDuoContexts(db),
-      ]);
-      break;
-
-    case "7 * * * *":
-      await emergencyTimeout(db, env);
-      break;
-
-    case "3 * * * *":
-      await emergencyReminder(db, env);
-      break;
-
-    case "10 0 * * *":
-      await cleanupEvents(db, env);
-      break;
-
-    case "20 0 * * *":
-      await purgeSsoAuth(db);
-      break;
+  if (minute === 5) {
+    await purgeSends(env);
+    if (hour === 0) await purgeTrash(env);
+  }
+  if (minute === 10 && hour === 0) {
+    await eventCleanup(env);
   }
 }
+
+export async function handleScheduled(
+  _event: ScheduledEvent,
+  env: Env,
+): Promise<void> {
+  await runScheduledTasks(env);
+}
+
 ```
 
 ### 任务实现
@@ -413,13 +394,9 @@ export async function processEventBatch(
 export default {
   fetch: app.fetch,
 
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(handleCronTrigger(event, env, ctx));
-  },
+  scheduled: handleScheduled,
 
-  async queue(batch: MessageBatch, env: Env) {
-    await handleQueueMessage(batch, env);
-  },
+  queue: handleQueue,
 };
 ```
 

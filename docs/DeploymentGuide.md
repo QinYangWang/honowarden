@@ -96,17 +96,9 @@ queue = "honowarden-events"
 max_batch_size = 100
 max_retries = 2
 
-# Cron Triggers
+# Cron Triggers（免费版最多 5 个，合并为 1 个每分钟触发）
 [triggers]
-crons = [
-  "5 * * * *",
-  "5 0 * * *",
-  "*/1 * * * *",
-  "7 * * * *",
-  "3 * * * *",
-  "10 0 * * *",
-  "20 0 * * *",
-]
+crons = ["*/1 * * * *"]
 
 # 构建
 [build]

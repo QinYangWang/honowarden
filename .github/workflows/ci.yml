@@ -53,11 +53,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Apply D1 Migrations
-        run: npm run db:migrate:remote
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
       - name: Deploy to Cloudflare
         uses: cloudflare/wrangler-action@v3
         with:
